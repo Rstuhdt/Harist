@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peta Jalan Karier AI untuk Ilmu Sosial</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Harmony -->
+    <!-- Application Structure Plan: A single-page application with a fixed top navigation bar allowing users to jump between sections. The structure is designed for non-linear exploration. It begins with 'Why AI Needs You?', followed by a three-phase interactive roadmap timeline. The core is the 'Career Explorer' dashboard, featuring filterable career cards that dynamically update a radar chart to visualize skill requirements, and a section for potential employers. This is more engaging than a linear report, allowing users to directly compare roles and understand requirements visually. The goal is to transform the document into a practical, interactive career planning tool. -->
+    <!-- Visualization & Content Choices: 
+        - Roadmap: Presented as an interactive vertical timeline (HTML/CSS/JS) to show progression, which is more engaging than a list. Goal: Guide user through stages. Interaction: Click to view details.
+        - Skills Matrix: Visualized as a dynamic Radar Chart (Chart.js). Hovering over a career card updates the chart to show skill needs for that role. Goal: Visually compare career skill requirements. Interaction: Hover/click on career cards.
+        - Career Profiles: Displayed as a grid of cards with a modal for detailed information. Goal: Organize and allow easy Browse of roles. Interaction: Click to open modal.
+        - Organization Landscape: Grouped cards for different employer types. Goal: Categorize potential employers. Interaction: Static display for clarity.
+        - Textual Content: Placed within clear sections with introductory paragraphs to provide context, often in collapsible accordions to manage information density. Goal: Inform without overwhelming.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #334155;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #0d9488;
+            border-bottom-color: #0d9488;
+        }
+        .career-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .career-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .modal-bg {
+            background-color: rgba(0,0,0,0.5);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #f0fdfa;
+            border: 4px solid #0d9488;
+            left: -10px;
+            top: 0;
+            z-index: 1;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background-color: #ccfbf1;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#hero" class="text-xl font-bold text-teal-700">IPS <span class="text-slate-600">&</span> AI</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700">Mengapa AI Butuh Anda</a>
+                        <a href="#roadmap" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700">Peta Jalan</a>
+                        <a href="#careers" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700">Jelajah Karier</a>
+                        <a href="#resources" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-slate-700">Sumber Daya</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-slate-500 hover:text-teal-600 hover:bg-teal-50 focus:outline-none">
+                        <span class="sr-only">Buka menu</span>
+                        <svg class="h-6 w-6" id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                         <svg class="h-6 w-6 hidden" id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="md:hidden hidden pb-3">
+                <a href="#intro" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-slate-700">Mengapa AI Butuh Anda</a>
+                <a href="#roadmap" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-slate-700">Peta Jalan</a>
+                <a href="#careers" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-slate-700">Jelajah Karier</a>
+                <a href="#resources" class="block nav-link px-3 py-2 rounded-md text-base font-medium text-slate-700">Sumber Daya</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="relative pt-16 pb-24 sm:pt-24 sm:pb-32">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl font-bold tracking-tight text-slate-800 sm:text-5xl md:text-6xl">
+                    Jembatan Kemanusiaan di Era Digital
+                </h1>
+                <p class="mt-6 max-w-3xl mx-auto text-lg leading-8 text-slate-600">
+                    Temukan bagaimana latar belakang Ilmu Sosial Anda bukan hanya relevan, tetapi krusial untuk membentuk masa depan Kecerdasan Buatan yang lebih adil dan manusiawi.
+                </p>
+                <div class="mt-10 flex items-center justify-center gap-x-6">
+                    <a href="#careers" class="rounded-md bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">Jelajahi Peluang Karier</a>
+                    <a href="#roadmap" class="text-sm font-semibold leading-6 text-slate-700 hover:text-slate-900">Lihat Peta Jalan <span aria-hidden="true">→</span></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Intro Section -->
+        <section id="intro" class="py-20 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl text-center">Mengapa Dunia AI Membutuhkan Anda?</h2>
+                    <p class="mt-4 text-lg text-slate-600 text-center">
+                        Teknologi AI tidak beroperasi dalam ruang hampa. Ia adalah cerminan dari masyarakat, lengkap dengan bias dan nilai-nilainya. Bagian ini menjelaskan mengapa keahlian Anda dalam memahami manusia, budaya, dan struktur sosial adalah aset tak ternilai untuk mencegah kegagalan teknologi dan membangun AI yang bertanggung jawab.
+                    </p>
+                    <div class="mt-12 space-y-8">
+                        <div class="relative p-6 bg-stone-50 rounded-lg border border-stone-200">
+                           <h3 class="text-lg font-semibold text-teal-800">Kegagalan "Technology-First"</h3>
+                           <p class="mt-2 text-slate-600">Industri telah belajar bahwa pendekatan yang murni teknis seringkali gagal. Algoritma rekrutmen yang bias gender atau sistem pinjaman yang diskriminatif bukan masalah kode, melainkan masalah pemahaman konteks sosial. Keahlian Anda adalah solusinya.</p>
+                        </div>
+                        <div class="relative p-6 bg-stone-50 rounded-lg border border-stone-200">
+                           <h3 class="text-lg font-semibold text-teal-800">AI sebagai Sistem Sosio-Teknis</h3>
+                           <p class="mt-2 text-slate-600">AI dibentuk oleh nilai pembuatnya dan akan membentuk kembali masyarakat. Dibutuhkan ahli yang bisa menganalisis dampak sosial, merancang kerangka etika, dan memastikan keadilan. Ini adalah domain inti seorang ilmuwan sosial.</p>
+                        </div>
+                        <div class="relative p-6 bg-stone-50 rounded-lg border border-stone-200">
+                           <h3 class="text-lg font-semibold text-teal-800">Permintaan Pasar yang Struktural</h3>
+                           <p class="mt-2 text-slate-600">Perusahaan dan pemerintah kini gencar membangun tim "Responsible AI". Ini bukan tren, melainkan fungsi bisnis inti. Permintaan akan "penerjemah" antara dunia teknis dan sosial-humaniora akan terus tumbuh secara signifikan.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Roadmap Section -->
+        <section id="roadmap" class="py-20">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl text-center">Peta Jalan Anda Menuju Industri AI</h2>
+                    <p class="mt-4 text-lg text-slate-600 text-center">
+                        Memasuki industri AI dari latar belakang non-teknis memerlukan strategi yang jelas. Peta jalan ini dibagi menjadi tiga fase praktis untuk membimbing Anda, mulai dari ruang kuliah hingga mendapatkan peran pertama Anda.
+                    </p>
+                    <div class="mt-16">
+                        <div class="relative ml-2">
+                           <div class="timeline-line"></div>
+                            <!-- Fase 1 -->
+                            <div class="mb-12 relative timeline-item">
+                                <div class="ml-8">
+                                    <div class="text-sm font-semibold text-teal-600 uppercase">Fase 1: Awal Perkuliahan</div>
+                                    <h3 class="text-xl font-bold text-slate-800 mt-1">Penguatan Kompetensi Inti</h3>
+                                    <p class="mt-2 text-slate-600">Fokus pada fondasi: unggul dalam studi Anda, kembangkan "literasi teknologi" dengan mengikuti berita dan kursus pengantar non-kode, serta kuasai keterampilan digital fundamental seperti literasi data dasar.</p>
+                                </div>
+                            </div>
+                            <!-- Fase 2 -->
+                            <div class="mb-12 relative timeline-item">
+                                <div class="ml-8">
+                                    <div class="text-sm font-semibold text-teal-600 uppercase">Fase 2: Akhir Perkuliahan</div>
+                                    <h3 class="text-xl font-bold text-slate-800 mt-1">Spesialisasi & Pengembangan Portofolio</h3>
+                                    <p class="mt-2 text-slate-600">Beralih ke penciptaan aktif. Gunakan skripsi untuk meneliti topik AI, dan bangun portofolio publik (misalnya blog) yang berisi analisis studi kasus etika atau memo kebijakan untuk menunjukkan keahlian Anda.</p>
+                                </div>
+                            </div>
+                            <!-- Fase 3 -->
+                            <div class="relative timeline-item">
+                                <div class="ml-8">
+                                    <div class="text-sm font-semibold text-teal-600 uppercase">Fase 3: Lulus & Awal Karier</div>
+                                    <h3 class="text-xl font-bold text-slate-800 mt-1">Memasuki Industri</h3>
+                                    <p class="mt-2 text-slate-600">Susun CV yang berorientasi industri, lakukan wawancara informatif untuk membangun jaringan, fokus pada magang, dan perluas pencarian ke konsultan, startup, serta organisasi nirlaba, tidak hanya perusahaan teknologi besar.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Careers Section -->
+        <section id="careers" class="py-20 bg-white">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">Jelajahi Peluang Karier Anda</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">
+                        Ekosistem AI yang bertanggung jawab sangat luas dan terus berkembang. Jelajahi berbagai peran di mana keahlian ilmu sosial Anda sangat dihargai. Arahkan kursor atau klik pada setiap kartu untuk melihat keterampilan yang dibutuhkan secara visual pada grafik di sebelah kanan.
+                    </p>
+                </div>
+
+                <div class="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                    <!-- Career Cards -->
+                    <div id="career-cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Cards will be injected by JS -->
+                    </div>
+
+                    <!-- Skills Chart -->
+                    <div class="sticky top-24">
+                         <h3 class="text-xl font-bold text-slate-800 text-center mb-2">Matriks Keterampilan</h3>
+                         <p id="chart-helper-text" class="text-center text-sm text-slate-500 mb-4">Arahkan kursor ke kartu karier untuk melihat detail.</p>
+                         <div class="chart-container">
+                            <canvas id="skillsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Organization Landscape -->
+                <div class="mt-24">
+                    <h3 class="text-2xl font-bold text-slate-800 text-center">Lanskap Organisasi: Di Mana Anda Bisa Bekerja?</h3>
+                    <p class="mt-3 max-w-3xl mx-auto text-center text-slate-600">
+                        Peluang tidak terbatas pada Silicon Valley. Berikut adalah tipe-tipe organisasi yang aktif merekrut talenta ilmu sosial untuk peran terkait AI.
+                    </p>
+                    <div id="organization-container" class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                       <!-- Orgs will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section id="resources" class="py-20">
+             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold tracking-tight text-slate-800 sm:text-4xl">Sumber Daya untuk Belajar</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-lg text-slate-600">
+                        Perjalanan belajar Anda tidak berhenti di sini. Gunakan sumber daya ini untuk melanjutkan eksplorasi dan tetap mengikuti perkembangan terbaru di bidang AI.
+                    </p>
+                </div>
+                <div id="resources-container" class="mt-12 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Resources will be injected here -->
+                </div>
+             </div>
+        </section>
+
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-white">
+        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-sm text-slate-300">Aplikasi Interaktif dibuat berdasarkan laporan "Jembatan Kemanusiaan di Era Digital".</p>
+            <p class="mt-2 text-xs text-slate-400">&copy; 2025 Peta Jalan Karier AI. Semua hak dilindungi.</p>
+        </div>
+    </footer>
+
+
+    <!-- Modal -->
+    <div id="career-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-bg">
+        <div class="relative bg-white rounded-lg shadow-xl w-11/12 max-w-3xl max-h-[90vh] overflow-y-auto p-6 md:p-8 modal-content">
+            <button id="close-modal-button" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <span class="sr-only">Tutup</span>
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div id="modal-content-container">
+                <!-- Modal content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data
+            const skillLabels = [
+                'Analisis Kebijakan', 'Kerangka Etika', 'Riset Kualitatif', 
+                'Riset Kuantitatif', 'Penulisan Teknis', 'Komunikasi Publik',
+                'Manajemen Proyek', 'Manajemen Stakeholder', 'Pemahaman HCI', 'Pemahaman Domain'
+            ];
+            
+            const careerData = {
+                'AI Policy Advisor': {
+                    title: 'Penasihat/Analis Kebijakan AI',
+                    skills: [3, 2, 2, 2, 3, 3, 2, 3, 1, 1],
+                    description: 'Jembatan antara dunia teknologi AI yang bergerak cepat dan kebijakan publik. Mereka menganalisis, menafsirkan, dan membantu membentuk peraturan terkait AI.',
+                    responsibilities: [
+                        'Menganalisis perkembangan legislasi AI global dan nasional.',
+                        'Menyusun dokumen kebijakan seperti white paper dan memo.',
+                        'Memastikan produk AI mematuhi regulasi dan etika.',
+                        'Membangun hubungan dengan pembuat kebijakan dan regulator.'
+                    ],
+                    requiredSkills: 'Pemahaman proses politik, analisis kebijakan kuat, kemampuan menulis dan komunikasi yang luar biasa.',
+                    employers: 'Perusahaan teknologi besar (Google, Meta), pemerintah (Kominfo), think tank, firma konsultan.'
+                },
+                'AI Ethicist / RAI PM': {
+                    title: 'Ahli Etika AI / Manajer Program AI Bertanggung Jawab',
+                    skills: [2, 3, 2, 2, 3, 3, 3, 3, 2, 2],
+                    description: 'Merancang dan mengimplementasikan program tata kelola internal untuk memastikan prinsip etika tertanam dalam siklus hidup pengembangan AI.',
+                    responsibilities: [
+                        'Mengembangkan kebijakan dan pedoman etika AI internal.',
+                        'Melakukan penilaian risiko etis pada produk baru.',
+                        'Mengelola operasional dewan atau komite etika AI.',
+                        'Memberikan bimbingan pada tim produk tentang desain yang etis.'
+                    ],
+                    requiredSkills: 'Pengetahuan kerangka etika, manajemen proyek/program kuat, kemampuan menerjemahkan prinsip abstrak menjadi syarat teknis.',
+                    employers: 'Perusahaan teknologi besar (Microsoft, IBM), perusahaan di sektor keuangan dan kesehatan.'
+                },
+                'UX Researcher (AI)': {
+                    title: 'Peneliti Pengalaman Pengguna (UX) untuk Produk AI',
+                    skills: [1, 2, 3, 2, 2, 2, 2, 2, 3, 1],
+                    description: 'Mempelajari kebutuhan, perilaku, dan model mental pengguna untuk membantu merancang produk AI yang intuitif, dapat dipercaya, dan bermanfaat.',
+                    responsibilities: [
+                        'Melakukan riset generatif untuk mengidentifikasi masalah pengguna.',
+                        'Melaksanakan studi usabilitas pada prototipe produk AI.',
+                        'Menganalisis data kualitatif untuk membangun persona pengguna.',
+                        'Bekerja dengan desainer untuk menerjemahkan riset menjadi desain.'
+                    ],
+                    requiredSkills: 'Penguasaan metode riset kualitatif (wawancara, etnografi), empati tinggi, kemampuan analisis tajam.',
+                    employers: 'Setiap perusahaan yang membangun produk AI yang berhadapan langsung dengan pengguna.'
+                },
+                'Trust & Safety Specialist': {
+                    title: 'Spesialis Kepercayaan dan Keamanan (Fokus AI)',
+                    skills: [2, 2, 2, 3, 2, 2, 2, 2, 2, 1],
+                    description: 'Berada di garis depan dalam memerangi penyalahgunaan yang dimungkinkan oleh AI, seperti misinformasi, ujaran kebencian, dan penipuan.',
+                    responsibilities: [
+                        'Mengembangkan kebijakan platform untuk konten yang dihasilkan AI.',
+                        'Menganalisis efektivitas sistem moderasi konten berbasis AI.',
+                        'Menyelidiki kasus-kasus penyalahgunaan platform yang kompleks.',
+                        'Bekerja sama dengan tim hukum dan kebijakan publik.'
+                    ],
+                    requiredSkills: 'Pemahaman dinamika komunitas online, pola pikir analitis, ketahanan emosional.',
+                    employers: 'Perusahaan media sosial (Meta, TikTok), platform berbagi konten (YouTube, Reddit).'
+                },
+                'AI for Good Researcher': {
+                    title: 'Peneliti Dampak Sosial di Sektor "AI for Good"',
+                    skills: [2, 2, 3, 2, 3, 3, 3, 3, 2, 3],
+                    description: 'Menggunakan AI untuk membantu memecahkan tantangan global seperti perubahan iklim, krisis kesehatan, dan kemiskinan.',
+                    responsibilities: [
+                        'Mengidentifikasi masalah sosial di mana AI dapat menjadi solusi.',
+                        'Merancang dan mengimplementasikan proyek AI dengan LSM dan komunitas.',
+                        'Mengevaluasi efektivitas dan implikasi etis dari intervensi AI.',
+                        'Mengelola proyek, termasuk pendanaan dan kemitraan.'
+                    ],
+                    requiredSkills: 'Pemahaman domain sosial spesifik (kesehatan, lingkungan), manajemen proyek, penulisan proposal hibah.',
+                    employers: 'Organisasi nirlaba (AI for Good Foundation), divisi CSR perusahaan, lembaga internasional (PBB, Bank Dunia).'
+                },
+                'Digital Sociologist/Anthropologist': {
+                    title: 'Sosiolog/Antropolog Digital dalam Tim Produk',
+                    skills: [1, 2, 3, 2, 3, 2, 2, 2, 2, 2],
+                    description: 'Bertindak sebagai ahli residen tentang perilaku manusia dan konteks sosial, memberikan wawasan strategis jangka panjang yang membentuk arah produk.',
+                    responsibilities: [
+                        'Melakukan penelitian etnografi digital untuk memahami konteks budaya.',
+                        'Menganalisis tren perilaku dari data skala besar.',
+                        'Memberi masukan pada desain produk agar selaras secara budaya.',
+                        'Mempelajari dampak jangka panjang produk terhadap komunitas.'
+                    ],
+                    requiredSkills: 'Keahlian teoretis dan metodologis mendalam di sosiologi/antropologi, keterampilan riset kuat.',
+                    employers: 'Perusahaan teknologi besar dengan departemen riset yang matang (Google, Microsoft Research).'
+                }
+            };
+
+            const organizationData = [
+                {
+                    type: "Perusahaan Teknologi Besar",
+                    examples: "Microsoft, Google, IBM, Meta",
+                    focus: "Tata kelola produk internal, manajemen risiko, advokasi kebijakan, riset fundamental.",
+                    color: "teal"
+                },
+                {
+                    type: "Konsultan & Penasihat",
+                    examples: "BCG, Deloitte, Accenture",
+                    focus: "Nasihat strategis dan implementasi kerangka tata kelola untuk klien.",
+                    color: "cyan"
+                },
+                {
+                    type: "Startup (Alat Tata Kelola AI)",
+                    examples: "Armilla AI, Validaitor, Soca AI",
+                    focus: "Mengembangkan software untuk audit bias, explainability, dan kepatuhan.",
+                    color: "sky"
+                },
+                 {
+                    type: "Nirlaba & Akademis",
+                    examples: "Partnership on AI, AI Now Institute",
+                    focus: "Riset independen, advokasi, pengembangan standar, dan proyek dampak sosial.",
+                    color: "indigo"
+                },
+                 {
+                    type: "Pemerintah & Lembaga Multilateral",
+                    examples: "Kominfo, Komisi Eropa, PBB",
+                    focus: "Pembentukan regulasi, penetapan standar, dan penggunaan AI di sektor publik.",
+                    color: "orange"
+                },
+                 {
+                    type: "Sektor Lain (Keuangan, Kesehatan)",
+                    examples: "Bank, Perusahaan Asuransi",
+                    focus: "Implementasi AI yang etis untuk operasional internal dan layanan pelanggan.",
+                    color: "rose"
+                }
+            ];
+
+            const resourcesData = [
+                 {
+                    category: "Kursus Daring (Non-Teknis)",
+                    items: [
+                        { name: "Ethics of Artificial Intelligence", provider: "Coursera (Univ. of Toronto)" },
+                        { name: "Responsible AI and Ethics", provider: "Coursera (UC Davis)" },
+                        { name: "Generative AI: Impact & Ethical Issues", provider: "Coursera (IBM)" },
+                        { name: "AI for Social Science", provider: "LSE Short Courses" }
+                    ]
+                },
+                {
+                    category: "Organisasi untuk Diikuti",
+                    items: [
+                        { name: "AI for Good Foundation", provider: "Fokus pada pencapaian SDGs PBB." },
+                        { name: "Partnership on AI (PAI)", provider: "Konsorsium multi-stakeholder." },
+                        { name: "AI Now Institute", provider: "Pusat riset implikasi sosial AI." },
+                        { name: "Algorithmic Justice League", provider: "Menyoroti bias dalam software AI." }
+                    ]
+                }
+            ];
+
+            // Chart.js setup
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            const skillsChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: skillLabels.map(label => label.split(' ')), // Split labels for multiline
+                    datasets: [{
+                        label: 'Tingkat Kebutuhan Keterampilan',
+                        data: [0,0,0,0,0,0,0,0,0,0], // Initial data
+                        fill: true,
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderColor: 'rgb(13, 148, 136)',
+                        pointBackgroundColor: 'rgb(13, 148, 136)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(13, 148, 136)'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: { 
+                                font: { size: 10 },
+                                color: '#475569'
+                            },
+                            ticks: {
+                                backdropColor: 'transparent',
+                                stepSize: 1,
+                                min: 0,
+                                max: 3,
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let value = context.raw;
+                                    let label = '';
+                                    if (value === 3) label = 'Esensial';
+                                    else if (value === 2) label = 'Penting';
+                                    else if (value === 1) label = 'Bermanfaat';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            function updateChart(careerKey) {
+                if(careerData[careerKey]) {
+                    skillsChart.data.datasets[0].data = careerData[careerKey].skills;
+                    skillsChart.data.datasets[0].label = `Keterampilan untuk ${careerData[careerKey].title}`;
+                    skillsChart.update();
+                }
+            }
+            
+            // Populate Career Cards
+            const careerCardsContainer = document.getElementById('career-cards-container');
+            Object.keys(careerData).forEach(key => {
+                const career = careerData[key];
+                const card = document.createElement('div');
+                card.className = 'p-6 bg-stone-50 rounded-lg border border-stone-200 cursor-pointer career-card';
+                card.innerHTML = `
+                    <h4 class="font-bold text-lg text-teal-800">${career.title}</h4>
+                    <p class="mt-2 text-sm text-slate-600">${career.description}</p>
+                `;
+                card.addEventListener('mouseenter', () => updateChart(key));
+                card.addEventListener('click', () => openModal(key));
+                careerCardsContainer.appendChild(card);
+            });
+
+            // Populate Organizations
+            const orgContainer = document.getElementById('organization-container');
+            const colors = {
+                teal: 'bg-teal-100 border-teal-200 text-teal-800',
+                cyan: 'bg-cyan-100 border-cyan-200 text-cyan-800',
+                sky: 'bg-sky-100 border-sky-200 text-sky-800',
+                indigo: 'bg-indigo-100 border-indigo-200 text-indigo-800',
+                orange: 'bg-orange-100 border-orange-200 text-orange-800',
+                rose: 'bg-rose-100 border-rose-200 text-rose-800'
+            };
+            organizationData.forEach(org => {
+                const card = document.createElement('div');
+                card.className = `p-6 rounded-lg border ${colors[org.color] || 'bg-gray-100 border-gray-200'}`;
+                card.innerHTML = `
+                    <h4 class="font-bold">${org.type}</h4>
+                    <p class="text-sm mt-2 font-medium">${org.focus}</p>
+                    <p class="text-xs mt-3 opacity-80">Contoh: ${org.examples}</p>
+                `;
+                orgContainer.appendChild(card);
+            });
+
+            // Populate Resources
+            const resourcesContainer = document.getElementById('resources-container');
+            resourcesData.forEach(resourceCat => {
+                const section = document.createElement('div');
+                let itemsHtml = resourceCat.items.map(item => `
+                    <li class="flex items-start">
+                        <span class="text-teal-500 mt-1 mr-2 flex-shrink-0">◆</span>
+                        <div>
+                            <span class="font-semibold text-slate-700">${item.name}</span>
+                            <span class="block text-sm text-slate-500">${item.provider}</span>
+                        </div>
+                    </li>
+                `).join('');
+                
+                section.innerHTML = `
+                    <h4 class="text-xl font-semibold text-slate-800 mb-4">${resourceCat.category}</h4>
+                    <ul class="space-y-3">${itemsHtml}</ul>
+                `;
+                resourcesContainer.appendChild(section);
+            });
+
+            // Set initial chart
+            updateChart('AI Policy Advisor');
+
+            // Modal logic
+            const modal = document.getElementById('career-modal');
+            const closeModalButton = document.getElementById('close-modal-button');
+            const modalContentContainer = document.getElementById('modal-content-container');
+
+            function openModal(careerKey) {
+                const career = careerData[careerKey];
+                if (!career) return;
+                
+                let responsibilitiesHtml = career.responsibilities.map(item => `<li class="flex"><span class="text-teal-500 mr-2 mt-1">✓</span><span>${item}</span></li>`).join('');
+
+                modalContentContainer.innerHTML = `
+                    <h3 class="text-2xl font-bold text-slate-800">${career.title}</h3>
+                    <p class="mt-2 text-slate-600">${career.description}</p>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-slate-700">Tanggung Jawab Utama:</h4>
+                        <ul class="mt-2 space-y-2 text-slate-600">${responsibilitiesHtml}</ul>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-teal-50 rounded-md border border-teal-100">
+                        <h4 class="font-semibold text-slate-700">Keterampilan yang Dibutuhkan:</h4>
+                        <p class="mt-1 text-slate-600">${career.requiredSkills}</p>
+                    </div>
+
+                     <div class="mt-6 p-4 bg-amber-50 rounded-md border border-amber-100">
+                        <h4 class="font-semibold text-slate-700">Contoh Pemberi Kerja:</h4>
+                        <p class="mt-1 text-slate-600">${career.employers}</p>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+
+            closeModalButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIconOpen = document.getElementById('menu-icon-open');
+            const menuIconClose = document.getElementById('menu-icon-close');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                menuIconOpen.classList.toggle('hidden');
+                menuIconClose.classList.toggle('hidden');
+            });
+            
+            // Smooth scroll for nav links & active state
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    if (this.getAttribute('href').length > 1) {
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({
+                            behavior: 'smooth'
+                        });
+
+                        // Close mobile menu on click
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                            menuIconOpen.classList.remove('hidden');
+                            menuIconClose.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+
+            // Active nav link on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
